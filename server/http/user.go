@@ -54,7 +54,7 @@ func createUser(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, gin.H{
-		"id": data.ID,
+		"username": data.Username,
 	})
 }
 

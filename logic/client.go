@@ -120,7 +120,6 @@ func (c *Client) send(msg *Message) {
 	default:
 		close(c.SendCh)
 		delete(c.Hub.Clients, c.User.ID)
-		delete(Lobby.Clients, c.User.ID)
 		return
 	}
 }

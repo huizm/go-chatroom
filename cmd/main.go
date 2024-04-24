@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/huizm/go-chatroom/logic"
 	"github.com/huizm/go-chatroom/model"
 	"github.com/huizm/go-chatroom/server/http"
 	"log"
@@ -32,8 +31,6 @@ func main() {
 			log.Fatalln("HTTP server error: ", err)
 		}
 	}()
-
-	go logic.Lobby.Run()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
