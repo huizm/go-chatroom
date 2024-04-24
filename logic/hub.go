@@ -3,38 +3,41 @@ package logic
 import "log"
 
 type Hub struct {
-	Clients      map[*Client]struct{}
+	Name         string
+	Clients      map[uint]*Client
 	BroadcastCh  chan *Message
 	RegisterCh   chan *Client
 	UnregisterCh chan *Client
 }
 
-func NewHub() *Hub {
+func NewHub(name string) *Hub {
 	return &Hub{
-		Clients:      make(map[*Client]struct{}),
+		Name:         name,
+		Clients:      make(map[uint]*Client),
 		BroadcastCh:  make(chan *Message),
 		RegisterCh:   make(chan *Client),
 		UnregisterCh: make(chan *Client),
 	}
 }
 
-var Lobby = NewHub()
+var Lobby = NewHub("Lobby")
 
 func (h *Hub) Run() {
 	for {
 		select {
 		case client := <-h.RegisterCh:
-			log.Println("Register client lobby ", client.User.Username)
-			if _, ok := h.Clients[client]; !ok {
-				h.Clients[client] = struct{}{}
+			log.Printf("[%v (%v)] Register client: %v", h.Name, len(h.Clients), client.User.Username)
+			if _, ok := h.Clients[client.User.ID]; !ok {
+				h.Clients[client.User.ID] = client
 			}
 		case client := <-h.UnregisterCh:
-			if _, ok := h.Clients[client]; ok {
-				delete(h.Clients, client)
+			log.Printf("[%v (%v)] Unregister client: %v", h.Name, len(h.Clients), client.User.Username)
+			if _, ok := h.Clients[client.User.ID]; ok {
+				delete(h.Clients, client.User.ID)
 				close(client.SendCh)
 			}
 		case message := <-h.BroadcastCh:
-			log.Println("Message received lobby ", message.Content)
+			log.Printf("[%v (%v)] Receive message from %v: \"%v...\"", h.Name, len(h.Clients), message.Sender.Username, string(message.Content)[:20])
 			h.handleMessage(message)
 		}
 	}
@@ -58,26 +61,10 @@ func (h *Hub) handleText(msg *Message) {
 }
 
 func (h *Hub) sendMessage(msg *Message) {
-	for client := range h.Clients {
-		log.Println("Send message lobby to ", client.User.Username)
-		client.SendCh <- msg
+	for _, c := range h.Clients {
+		if c.User != msg.Sender {
+			log.Printf("[%v (%v)] Send message to %v: \"%v...\"", h.Name, len(h.Clients), c.User.Username, string(msg.Content)[:20])
+			c.send(msg)
+		}
 	}
-
-	//// broadcast to all by default
-	//if msg.Receivers == nil {
-	//	for client := range h.Clients {
-	//		if client.User.Username != msg.Sender {
-	//			msg.Receivers = append(msg.Receivers, client.User.Username)
-	//		}
-	//	}
-	//}
-	//
-	//for _, client := range msg.Receivers {
-	//	select {
-	//	case h.Clients[]  <- msg:
-	//	default:
-	//		close(client.SendCh)
-	//		delete(h.Clients, client)
-	//	}
-	//}
 }
