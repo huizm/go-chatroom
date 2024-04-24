@@ -113,3 +113,14 @@ func (c *Client) handleMessage(data []byte) error {
 	c.Hub.BroadcastCh <- msg
 	return nil
 }
+
+func (c *Client) send(msg *Message) {
+	select {
+	case c.SendCh <- msg:
+	default:
+		close(c.SendCh)
+		delete(c.Hub.Clients, c.User.ID)
+		delete(Lobby.Clients, c.User.ID)
+		return
+	}
+}
