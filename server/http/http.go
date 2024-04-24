@@ -21,8 +21,7 @@ func newRouter() (r *gin.Engine) {
 	r.POST("/users", createUser)          // {"username": "cohad", "password": "hashed"}
 	r.POST("/auth", auth)                 // {"username": "cohad", "password": "hashed"}
 
-	r.Use(middleware.JWT()) // (in header) "Authorization": token
-	r.GET("/ws", ws.Handler)
+	r.GET("/ws", middleware.JWT(), ws.Handler) // (in header) "Authorization": token
 
 	return
 }

@@ -1,15 +1,19 @@
 package logic
 
+import (
+	"github.com/huizm/go-chatroom/model"
+)
+
 type MessageType uint8
 
 const (
-	MTInvite MessageType = iota
-	MTText
+	MTText MessageType = iota
+	MTInvite
 )
 
 type Message struct {
-	Sender    *Client     `json:"sender"`
-	Type      MessageType `json:"type"`
-	Receivers []*Client   `json:"receivers"`
-	Content   []byte      `json:"content"`
+	Sender *model.User `json:"sender,omitempty"`
+	Type   MessageType `json:"type"`
+	//Receivers []string    `json:"receivers,omitempty"`
+	Content []byte `json:"content"`
 }
